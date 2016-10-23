@@ -17,10 +17,10 @@ RUN set -x \
 
     # Install ca-certificates
     && apt-get update \
-    && apt-get install ca-certificates \
+    && apt-get install -y curl ca-certificates \
 
     # Install sha256sum validator to check that we download the right files
-    && wget -q -O validate_sha256sum https://gist.githubusercontent.com/onnimonni/b49779ebc96216771a6be3de46449fa1/raw/d3ef37ab4a653e1b7655df55dfeadd54e0bacf84/validate_sha256sum \
+    && curl -L -o validate_sha256sum https://gist.githubusercontent.com/onnimonni/b49779ebc96216771a6be3de46449fa1/raw/d3ef37ab4a653e1b7655df55dfeadd54e0bacf84/validate_sha256sum \
     # This is semi meta but validate that our validator is valid
     && sha256sum validate_sha256sum | grep 0f7b790036f7cd00610cbe9e79c5b6b42d5b0e02beaff9549bdc43fc99910709 \
     && echo "Success: validate_sha256sum matches provided sha256sum" || exit 1 \
@@ -33,7 +33,7 @@ RUN set -x \
     # Add S6-overlay to use S6 process manager
     # source: https://github.com/just-containers/s6-overlay/#the-docker-way
     ##
-    && wget -q -O /tmp/s6-overlay-amd64.tar.gz https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz \
+    && curl -L -o /tmp/s6-overlay-amd64.tar.gz https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz \
     && validate_sha256sum /tmp/s6-overlay-amd64.tar.gz 5bb2c67db9369494578e0205fdcf6f44011a1913b98abbc6a7aac551a7c1b0a8 \
     && tar -zxvf /tmp/s6-overlay-amd64.tar.gz -C / \
 
@@ -62,7 +62,7 @@ RUN set -x \
     && chmod a+x /usr/local/bin/* \
 
     # Cleanup
-    && apt-get remove -y gettext \
+    && apt-get remove --purge -y $(apt-mark showauto) \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
