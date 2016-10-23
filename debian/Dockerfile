@@ -64,6 +64,6 @@ RUN set -x \
     # Cleanup
     && apt-get remove --purge -y $(apt-mark showauto) \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/log/apt/*
 
 ENTRYPOINT ["/init"]
