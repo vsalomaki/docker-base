@@ -53,11 +53,11 @@ RUN set -x \
     ##
 
     # ll
-    && echo -e "#!/bin/sh \nls -lah \"\$@\"" > /usr/local/bin/ll \
+    && echo "#!/bin/sh \nls -lah \"\$@\"" > /usr/local/bin/ll \
     # la
-    && echo -e "#!/bin/sh \nls -A \"\$@\"" > /usr/local/bin/la \
+    && echo "#!/bin/sh \nls -A \"\$@\"" > /usr/local/bin/la \
     # l
-    && echo -e "#!/bin/sh \nls -CF \"\$@\"" > /usr/local/bin/l \
+    && echo "#!/bin/sh \nls -CF \"\$@\"" > /usr/local/bin/l \
 
     && chmod a+x /usr/local/bin/* \
 
