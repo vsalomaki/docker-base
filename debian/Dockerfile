@@ -3,6 +3,7 @@ MAINTAINER Onni Hakala <onni.hakala@geniem.com>
 
 # Build arguments
 ARG S6_OVERLAY_VERSION=v1.18.1.3
+ARG GOSU_VERSION=1.10
 
 # Finland is quite nice place to live.
 # Instead of forking this you should move your living address here.
@@ -17,7 +18,7 @@ RUN set -x \
 
     # Install ca-certificates
     && apt-get update \
-    && apt-get install -y curl ca-certificates \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
 
     # Install sha256sum validator to check that we download the right files
     && curl -L -o validate_sha256sum https://gist.githubusercontent.com/onnimonni/b49779ebc96216771a6be3de46449fa1/raw/d3ef37ab4a653e1b7655df55dfeadd54e0bacf84/validate_sha256sum \
@@ -46,6 +47,19 @@ RUN set -x \
     # - only weights 100KB combined with it's libraries
     && apt-get install -y gettext \
     && mv /usr/bin/envsubst /usr/local/sbin/envsubst \
+
+    ##
+    # Install gosu to fix misbehaving su in some environments
+    ##
+    && dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+    && curl -L -o /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
+    && curl -L -o /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+    && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+    && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
+    && chmod +x /usr/local/bin/gosu \
+    && gosu nobody true \
 
     ##
     # Create a few aliases
