@@ -3,6 +3,7 @@ MAINTAINER Onni Hakala <onni.hakala@geniem.com>
 
 # Build arguments
 ARG S6_OVERLAY_VERSION=v1.18.1.3
+ARG S6_OVERLAY_SHA256=5bb2c67db9369494578e0205fdcf6f44011a1913b98abbc6a7aac551a7c1b0a8
 ARG GOSU_VERSION=1.10
 
 # Finland is quite nice place to live.
@@ -12,13 +13,36 @@ ENV TZ="Europe/Helsinki" \
 
 RUN set -x \
 
+    # Add all deb-src addresses
+    && echo "deb http://deb.debian.org/debian jessie main\n\
+deb-src http://deb.debian.org/debian jessie main\n\
+deb http://deb.debian.org/debian jessie-updates main\n\
+deb-src http://deb.debian.org/debian jessie-updates main\n\
+deb http://security.debian.org jessie/updates main\n\
+deb-src http://security.debian.org/ jessie/updates main" > /etc/apt/sources.list \
+
+    # Update sources and upgrade all packages
+    && apt-get update -y \
+    && apt-get upgrade -y \
+
+    ##
+    # Rebuild pam with --disable-audit flag
+    # Fixes: https://github.com/docker/docker/issues/5899
+    ##
+    && apt-get -y build-dep pam \
+    && cd /tmp/ \
+    && export CONFIGURE_OPTS=--disable-audit \
+    && apt-get -b source pam \
+    && dpkg -i libpam-doc*.deb libpam-modules*.deb libpam-runtime*.deb libpam0g*.deb \
+    && rm -rf /tmp/* \
+    && unset CONFIGURE_OPTS \
+
+    # Install ca-certificates
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+
     # This folder is in $PATH by default but isn't created by default
     && mkdir -p /usr/local/sbin \
     && cd /usr/local/sbin \
-
-    # Install ca-certificates
-    && apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates \
 
     # Install sha256sum validator to check that we download the right files
     && curl -L -o validate_sha256sum https://gist.githubusercontent.com/onnimonni/b49779ebc96216771a6be3de46449fa1/raw/d3ef37ab4a653e1b7655df55dfeadd54e0bacf84/validate_sha256sum \
@@ -35,7 +59,7 @@ RUN set -x \
     # source: https://github.com/just-containers/s6-overlay/#the-docker-way
     ##
     && curl -L -o /tmp/s6-overlay-amd64.tar.gz https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz \
-    && validate_sha256sum /tmp/s6-overlay-amd64.tar.gz 5bb2c67db9369494578e0205fdcf6f44011a1913b98abbc6a7aac551a7c1b0a8 \
+    && validate_sha256sum /tmp/s6-overlay-amd64.tar.gz ${S6_OVERLAY_SHA256} \
     && tar -zxvf /tmp/s6-overlay-amd64.tar.gz -C / \
 
     # Add default timezone
