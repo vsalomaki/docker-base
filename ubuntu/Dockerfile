@@ -3,8 +3,8 @@ MAINTAINER Hannu Kumpula <hannu.kumpula@geniem.com>
 ## Forked from Onni Hakala's debian version
 
 # Build arguments
-ARG S6_OVERLAY_VERSION=v1.18.1.3
-ARG S6_OVERLAY_SHA256=5bb2c67db9369494578e0205fdcf6f44011a1913b98abbc6a7aac551a7c1b0a8
+ARG S6_OVERLAY_VERSION=v1.21.2.0
+ARG S6_OVERLAY_SHA256=0b71d24d655a4a5eaa21b90a12dff7debd5a3d33abd90165b0a114b787140dfe
 ARG GOSU_VERSION=1.10
 
 # Finland is quite nice place to live.
@@ -15,14 +15,15 @@ ENV TZ="Europe/Helsinki" \
 RUN set -x \
 
     # Add all deb-src addresses
-    && echo "deb http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
-deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
-deb http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main\n\
-deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main" > /etc/apt/sources.list \
+#    && echo "deb http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
+#deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
+#deb http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main\n\
+#deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main" > /etc/apt/sources.list \
 
     # Update sources and upgrade all packages
     && apt-get update -y \
     && apt-get upgrade -y \
+    && apt-get -y install apt-utils \
 
     ##
     # Rebuild pam with --disable-audit flag
