@@ -1,11 +1,11 @@
-FROM ubuntu:xenial
+FROM ubuntu:bionic
 MAINTAINER Hannu Kumpula <hannu.kumpula@geniem.com>
 ## Forked from Onni Hakala's debian version
 
 # Build arguments
-ARG S6_OVERLAY_VERSION=v1.21.2.0
-ARG S6_OVERLAY_SHA256=0b71d24d655a4a5eaa21b90a12dff7debd5a3d33abd90165b0a114b787140dfe
-ARG GOSU_VERSION=1.10
+ARG S6_OVERLAY_VERSION=v1.22.1.0
+ARG S6_OVERLAY_SHA256=73f9779203310ddf9c5132546a1978e1a2b05990263b92ed2c34c1e258e2df6c
+ARG GOSU_VERSION=1.11
 
 # Finland is quite nice place to live.
 # Instead of forking this you should move your living address here.
@@ -39,7 +39,7 @@ RUN set -x \
  #  && unset CONFIGURE_OPTS \
 
     # Install ca-certificates
-    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && apt-get install -y --no-install-recommends curl ca-certificates gpg dirmngr gpg-agent \
 
     # This folder is in $PATH by default but isn't created by default
     && mkdir -p /usr/local/sbin \
