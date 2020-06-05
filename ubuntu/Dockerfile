@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:focal
 MAINTAINER Hannu Kumpula <hannu.kumpula@geniem.com>
 ## Forked from Onni Hakala's debian version
 
@@ -23,7 +23,7 @@ RUN set -x \
     # Update sources and upgrade all packages
     && apt-get update -y \
     && apt-get upgrade -y \
-    && apt-get -y install apt-utils \
+    && apt-get -y install apt-utils apt-transport-https \
 
     ##
     # Rebuild pam with --disable-audit flag
@@ -53,19 +53,22 @@ RUN set -x \
     && chmod +x validate_sha256sum \
 
     # Give execution rights to all scripts which we downloaded
-    && chmod a+x * \
+    && chmod a+x *
 
     ##
     # Add S6-overlay to use S6 process manager
     # source: https://github.com/just-containers/s6-overlay/#the-docker-way
     ##
-    && curl -L -o /tmp/s6-overlay-amd64.tar.gz https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz \
-    && validate_sha256sum /tmp/s6-overlay-amd64.tar.gz ${S6_OVERLAY_SHA256} \
-    && tar -zxvf /tmp/s6-overlay-amd64.tar.gz -C / \
+    #&& curl -L -o /tmp/s6-overlay-amd64.tar.gz https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz \
+    #&& validate_sha256sum /tmp/s6-overlay-amd64.tar.gz ${S6_OVERLAY_SHA256} \
+    #&& tar -zxvf /tmp/s6-overlay-amd64.tar.gz -C / \
+ADD https://github.com/just-containers/s6-overlay/releases/download/v2.0.0.1/s6-overlay-amd64.tar.gz /tmp/
+RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C / --exclude='./bin' && tar xzf /tmp/s6-overlay-amd64.tar.gz -C /usr ./bin
+
 
     # Add default timezone
     ## TODO: could not get env working so tz is now hardcoded
-    && apt-get install -y tzdata \
+RUN apt-get install -y tzdata \
     &&  /bin/ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
 
     # Install envsubst command for replacing config files in system startup
