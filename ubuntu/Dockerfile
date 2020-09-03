@@ -1,6 +1,6 @@
-FROM ubuntu:xenial
-MAINTAINER Hannu Kumpula <hannu.kumpula@geniem.com>
-## Forked from Onni Hakala's debian version
+FROM ubuntu:bionic
+MAINTAINER Ville Salomäki <vsalomaki@gmail.com>
+## Forked from Onni Hakala's debian version and Hannu Kumpulas xenial-version
 
 # Build arguments
 ARG S6_OVERLAY_VERSION=v1.21.2.0
@@ -12,13 +12,16 @@ ARG GOSU_VERSION=1.10
 ENV TZ="Europe/Helsinki" \
     DEBIAN_FRONTEND=noninteractive
 
+
+
+
 RUN set -x \
 
     # Add all deb-src addresses
-#    && echo "deb http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
-#deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
-#deb http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main\n\
-#deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main" > /etc/apt/sources.list \
+    #    && echo "deb http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
+    #deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
+    #deb http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main\n\
+    #deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main" > /etc/apt/sources.list \
 
     # Update sources and upgrade all packages
     && apt-get update -y \
@@ -30,13 +33,13 @@ RUN set -x \
     # Fixes: https://github.com/docker/docker/issues/5899
     # Disabled this because no issue in Xenial
     ##
- #   && apt-get -y build-dep pam \
- #   && cd /tmp/ \
- #   && export CONFIGURE_OPTS=--disable-audit \
- #   && apt-get -b source pam \
- #   && dpkg -i libpam-doc*.deb libpam-modules*.deb libpam-runtime*.deb libpam0g*.deb \
- #   && rm -rf /tmp/* \
- #  && unset CONFIGURE_OPTS \
+    #   && apt-get -y build-dep pam \
+    #   && cd /tmp/ \
+    #   && export CONFIGURE_OPTS=--disable-audit \
+    #   && apt-get -b source pam \
+    #   && dpkg -i libpam-doc*.deb libpam-modules*.deb libpam-runtime*.deb libpam0g*.deb \
+    #   && rm -rf /tmp/* \
+    #  && unset CONFIGURE_OPTS \
 
     # Install ca-certificates
     && apt-get install -y --no-install-recommends curl ca-certificates \
@@ -55,6 +58,7 @@ RUN set -x \
     # Give execution rights to all scripts which we downloaded
     && chmod a+x * \
 
+
     ##
     # Add S6-overlay to use S6 process manager
     # source: https://github.com/just-containers/s6-overlay/#the-docker-way
@@ -71,6 +75,8 @@ RUN set -x \
     # Install envsubst command for replacing config files in system startup
     # - it needs libintl package
     # - only weights 100KB combined with it's libraries
+    
+    
     && apt-get install -y gettext \
     && mv /usr/bin/envsubst /usr/local/sbin/envsubst \
 
@@ -81,9 +87,15 @@ RUN set -x \
     && curl -L -o /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
     && curl -L -o /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
     && export GNUPGHOME="$(mktemp -d)" \
+    
+    # && mkdir ~/.gnupg \
+    # && echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf \
+
+    && apt-get -y install gpg \
     && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
-    && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
+    #"$GNUPGHOME"
+    && rm -r /usr/local/bin/gosu.asc \ 
     && chmod +x /usr/local/bin/gosu \
     && gosu nobody true \
 
@@ -98,7 +110,6 @@ RUN set -x \
     && echo "#!/bin/sh \nls -A \"\$@\"" > /usr/local/bin/la \
     # l
     && echo "#!/bin/sh \nls -CF \"\$@\"" > /usr/local/bin/l \
-
     && chmod a+x /usr/local/bin/* \
 
     # Cleanup
