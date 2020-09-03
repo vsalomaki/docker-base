@@ -12,34 +12,12 @@ ARG GOSU_VERSION=1.10
 ENV TZ="Europe/Helsinki" \
     DEBIAN_FRONTEND=noninteractive
 
-
-
-
 RUN set -x \
-
-    # Add all deb-src addresses
-    #    && echo "deb http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
-    #deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial main\n\
-    #deb http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main\n\
-    #deb-src http://mirrors.nic.funet.fi/ubuntu/ xenial-updates main" > /etc/apt/sources.list \
 
     # Update sources and upgrade all packages
     && apt-get update -y \
     && apt-get upgrade -y \
     && apt-get -y install apt-utils \
-
-    ##
-    # Rebuild pam with --disable-audit flag
-    # Fixes: https://github.com/docker/docker/issues/5899
-    # Disabled this because no issue in Xenial
-    ##
-    #   && apt-get -y build-dep pam \
-    #   && cd /tmp/ \
-    #   && export CONFIGURE_OPTS=--disable-audit \
-    #   && apt-get -b source pam \
-    #   && dpkg -i libpam-doc*.deb libpam-modules*.deb libpam-runtime*.deb libpam0g*.deb \
-    #   && rm -rf /tmp/* \
-    #  && unset CONFIGURE_OPTS \
 
     # Install ca-certificates
     && apt-get install -y --no-install-recommends curl ca-certificates \
@@ -58,7 +36,6 @@ RUN set -x \
     # Give execution rights to all scripts which we downloaded
     && chmod a+x * \
 
-
     ##
     # Add S6-overlay to use S6 process manager
     # source: https://github.com/just-containers/s6-overlay/#the-docker-way
@@ -71,15 +48,13 @@ RUN set -x \
     ## TODO: could not get env working so tz is now hardcoded
     && apt-get install -y tzdata \
     &&  /bin/ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
-
+	
     # Install envsubst command for replacing config files in system startup
     # - it needs libintl package
     # - only weights 100KB combined with it's libraries
-    
-    
     && apt-get install -y gettext \
     && mv /usr/bin/envsubst /usr/local/sbin/envsubst \
-
+	
     ##
     # Install gosu to fix misbehaving su in some environments
     ##
@@ -87,14 +62,9 @@ RUN set -x \
     && curl -L -o /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
     && curl -L -o /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
     && export GNUPGHOME="$(mktemp -d)" \
-    
-    # && mkdir ~/.gnupg \
-    # && echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf \
-
     && apt-get -y install gpg \
     && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
-    #"$GNUPGHOME"
     && rm -r /usr/local/bin/gosu.asc \ 
     && chmod +x /usr/local/bin/gosu \
     && gosu nobody true \
