@@ -1,5 +1,5 @@
 FROM ubuntu:bionic
-MAINTAINER Ville Salomäki <vsalomaki@gmail.com>
+LABEL maintainer="vsalomaki@gmail.com"
 ## Forked from Onni Hakala's debian version and Hannu Kumpulas xenial-version
 
 # Build arguments
@@ -13,29 +13,23 @@ ENV TZ="Europe/Helsinki" \
     DEBIAN_FRONTEND=noninteractive
 
 RUN set -x \
-
     # Update sources and upgrade all packages
     && apt-get update -y \
     && apt-get upgrade -y \
     && apt-get -y install apt-utils \
-
     # Install ca-certificates
     && apt-get install -y --no-install-recommends curl ca-certificates \
-
     # This folder is in $PATH by default but isn't created by default
     && mkdir -p /usr/local/sbin \
     && cd /usr/local/sbin \
-
     # Install sha256sum validator to check that we download the right files
     && curl -L -o validate_sha256sum https://gist.githubusercontent.com/Hooace/94f42d2d107f4e4cf13bb721c5c63218/raw/d3ef37ab4a653e1b7655df55dfeadd54e0bacf84/validate_sha256sum \
     # This is semi meta but validate that our validator is valid
     && sha256sum validate_sha256sum | grep 0f7b790036f7cd00610cbe9e79c5b6b42d5b0e02beaff9549bdc43fc99910709 \
     && echo "Success: validate_sha256sum matches provided sha256sum" || exit 1 \
     && chmod +x validate_sha256sum \
-
     # Give execution rights to all scripts which we downloaded
     && chmod a+x * \
-
     ##
     # Add S6-overlay to use S6 process manager
     # source: https://github.com/just-containers/s6-overlay/#the-docker-way
@@ -43,18 +37,15 @@ RUN set -x \
     && curl -L -o /tmp/s6-overlay-amd64.tar.gz https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz \
     && validate_sha256sum /tmp/s6-overlay-amd64.tar.gz ${S6_OVERLAY_SHA256} \
     && tar -zxvf /tmp/s6-overlay-amd64.tar.gz -C / \
-
     # Add default timezone
     ## TODO: could not get env working so tz is now hardcoded
     && apt-get install -y tzdata \
     &&  /bin/ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
-	
     # Install envsubst command for replacing config files in system startup
     # - it needs libintl package
     # - only weights 100KB combined with it's libraries
     && apt-get install -y gettext \
     && mv /usr/bin/envsubst /usr/local/sbin/envsubst \
-	
     ##
     # Install gosu to fix misbehaving su in some environments
     ##
@@ -68,12 +59,10 @@ RUN set -x \
     && rm -r /usr/local/bin/gosu.asc \ 
     && chmod +x /usr/local/bin/gosu \
     && gosu nobody true \
-
     ##
     # Create a few aliases
     # - I didn't figure out how to load aliases into sh shell with docker so we add scripts instead
     ##
-
     # ll
     && echo "#!/bin/sh \nls -lah \"\$@\"" > /usr/local/bin/ll \
     # la
@@ -81,7 +70,6 @@ RUN set -x \
     # l
     && echo "#!/bin/sh \nls -CF \"\$@\"" > /usr/local/bin/l \
     && chmod a+x /usr/local/bin/* \
-
     # Cleanup
     && apt-get remove --purge -y $(apt-mark showauto) \
     && apt-get clean \
