@@ -14,11 +14,11 @@ ENV TZ="Europe/Helsinki" \
 
 RUN set -x \
     # Update sources and upgrade all packages
-    && apt-get update -y \
-    && apt-get upgrade -y \
-    && apt-get -y install apt-utils \
+    && apt update -y \
+    && apt upgrade -y \
+    && apt -y install apt-utils \
     # Install ca-certificates
-    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && apt install -y --no-install-recommends curl ca-certificates \
     # This folder is in $PATH by default but isn't created by default
     && mkdir -p /usr/local/sbin \
     && cd /usr/local/sbin \
